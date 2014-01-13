@@ -1,4 +1,4 @@
-
+﻿
 /* Execute compiled code */
 
 /* XXX TO DO:
@@ -1177,7 +1177,7 @@ static int _fuhengcount = 0;
                    a try: finally: block uninterruptable. */
                 goto fast_next_opcode;
             }
-            _Py_Ticker = _Py_CheckInterval;
+            _Py_Ticker = _Py_CheckInterval;//默认100
             tstate->tick_counter++;
 #ifdef WITH_TSC
             ticked = 1;
