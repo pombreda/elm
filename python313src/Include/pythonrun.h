@@ -85,6 +85,7 @@ PyAPI_FUNC(int) Py_FdIsInteractive(FILE *, const char *);
 
 /* Bootstrap */
 PyAPI_FUNC(int) Py_Main(int argc, wchar_t **argv);
+PyAPI_FUNC(int) Py_Main2(int argc, wchar_t **argv);
 
 /* Use macros for a bunch of old variants */
 #define PyRun_String(str, s, g, l) PyRun_StringFlags(str, s, g, l, NULL)

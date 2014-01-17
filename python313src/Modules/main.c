@@ -605,59 +605,71 @@ Py_Main(int argc, wchar_t **argv)
         }
 
         char cfilename[PATH_MAX];
-        if (sts==-1 && filename!=NULL) {
-            char tmp[PATH_MAX];
-            size_t r = wcstombs(tmp, filename, PATH_MAX);
-            if (r == PATH_MAX){
-                strcpy(tmp, "<file name too long>");
-            }else if (r == ((size_t)-1)){
-                strcpy(tmp, "<unprintable file name>");
-            }
-            strcpy(cfilename, tmp);
-            enum { len = 3 };
-            char* surfix[len] = {"py","pyc","pyo"};
-            int k = 0;
-            while (1){
-                if (access(cfilename, 0) == -1) {
-                    if (k > len - 1){
-                        return 2;
-                    }
-                    sprintf(cfilename, "%s.%s", tmp,surfix[k++]);
-                }else {
-                    break;
+        if (sts == -1 && filename != NULL) {
+            if ((fp = _wfopen(filename, L"r")) == NULL) {
+                int sz = wcslen(filename);
+                if (sz > 3 && wcscmp(filename + sz - 3, L".py") == 0){
+                    filename[sz - 3] = L'\0';
                 }
-            }
-            if ((fp = fopen(cfilename, "r")) == NULL) {
-                return 2;
-            } else if (skipfirstline) {
-                int ch;
-                /* Push back first newline so line numbers
-                   remain the same */
-                while ((ch = getc(fp)) != EOF) {
-                    if (ch == '\n') {
-                        (void)ungetc(ch, fp);
+                char tmp[PATH_MAX];
+                size_t r = wcstombs(tmp, filename, PATH_MAX);
+                if (r == PATH_MAX){
+                    strcpy(tmp, "<file name too long>");
+                }
+                else if (r == ((size_t)-1)){
+                    strcpy(tmp, "<unprintable file name>");
+                }
+                strcpy(cfilename, tmp);
+                enum { len = 3 };
+                char* surfix[len] = { "py", "pyc", "pyo" };
+                int k = 0;
+                while (1){
+                    if (access(cfilename, 0) == -1) {
+                        if (k > len - 1){
+                            wprintf(L"ERROR:%s is not found.\n",filename);
+                            return 2;
+                        }
+                        sprintf(cfilename, "%s.%s", tmp, surfix[k++]);
+                    }
+                    else {
                         break;
                     }
                 }
-            }
-
-            {
-                /* XXX: does this work on Win/Win64? (see posix_fstat) */
-                struct stat sb;
-                if (fstat(fileno(fp), &sb) == 0 &&
-                    S_ISDIR(sb.st_mode)) {
-                    fprintf(stderr, "%ls: '%s' is a directory, cannot continue\n", argv[0], cfilename);
-                    fclose(fp);
-                    return 1;
+                if ((fp = fopen(cfilename, "r")) == NULL) {
+                    return 2;
                 }
+                else if (skipfirstline) {
+                    int ch;
+                    /* Push back first newline so line numbers remain the same */
+                    while ((ch = getc(fp)) != EOF) {
+                        if (ch == '\n') {
+                            (void)ungetc(ch, fp);
+                            break;
+                        }
+                    }
+                }
+            }else{
+                wcstombs(cfilename, filename, PATH_MAX);
             }
         }
+
+        {
+            /* XXX: does this work on Win/Win64? (see posix_fstat) */
+            struct stat sb;
+            if (fstat(fileno(fp), &sb) == 0 &&
+                S_ISDIR(sb.st_mode)) {
+                fprintf(stderr, "%ls: '%s' is a directory, cannot continue\n", argv[0], cfilename);
+                fclose(fp);
+                return 1;
+            }
+        }
+
 
         if (sts==-1) {
             PyObject *filenameObj = NULL;
             char *p_cfilename = "<stdin>";
             if (cfilename) {
-                filenameObj = PyUnicode_FromString(cfilename, strlen(cfilename));
+                filenameObj = PyUnicode_FromString(cfilename);
                 if (filenameObj != NULL)
                     p_cfilename = _PyUnicode_AsString(filenameObj);
                 else
@@ -675,7 +687,6 @@ Py_Main(int argc, wchar_t **argv)
             }
             Py_XDECREF(filenameObj);
         }
-
     }
 
     /* Check this environment variable at the end, to give programs the

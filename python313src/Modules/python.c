@@ -12,7 +12,7 @@ int
 //wmain(int argc, wchar_t **argv)
 wmain(int argc, wchar_t *argv[])
 {
-    return Py_Main(argc, argv);
+    return Py_Main2(argc, argv);
 }
 #else
 static wchar_t*
