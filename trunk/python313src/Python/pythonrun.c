@@ -59,10 +59,11 @@ extern grammar _PyParser_Grammar; /* From graminit.c */
 static void initmain(void);
 static void initsite(void);
 static int initstdio(void);
-static void flush_io(void);
+void flush_io(void);
 static PyObject *run_mod(mod_ty, const char *, PyObject *, PyObject *,
                           PyCompilerFlags *, PyArena *);
-static PyObject *run_pyc_file(FILE *, const char *, PyObject *, PyObject *,
+//static 
+PyObject *run_pyc_file(FILE *, const char *, PyObject *, PyObject *,
                               PyCompilerFlags *);
 static void err_input(perrdetail *);
 static void initsigs(void);
@@ -1673,7 +1674,7 @@ PyRun_FileExFlags(FILE *fp, const char *filename, int start, PyObject *globals,
     return ret;
 }
 
-static void
+void
 flush_io(void)
 {
     PyObject *f, *r;
@@ -1716,7 +1717,8 @@ run_mod(mod_ty mod, const char *filename, PyObject *globals, PyObject *locals,
     return v;
 }
 
-static PyObject *
+//static 
+PyObject *
 run_pyc_file(FILE *fp, const char *filename, PyObject *globals,
              PyObject *locals, PyCompilerFlags *flags)
 {
